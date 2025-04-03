@@ -1,0 +1,281 @@
+<!-- Include Maps Helper -->
+<script src="/js/maps-helper.js"></script>
+
+<!-- Google Maps Script for Admin Dashboard -->
+<script>
+    let adminMap;
+    let allBoatMarkers = []; // Array to store all boat markers
+    
+    function initAdminMap() {
+        // Hide loading spinner when map is initialized
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading) {
+            mapLoading.style.display = 'none';
+        }
+        
+        // Create a new map centered at a point with a good global view
+        adminMap = new google.maps.Map(document.getElementById("admin-map"), {
+            center: { lat: 20, lng: 0 }, // Center that shows most of the world
+            zoom: 2, // Zoom level to see the entire world
+            mapTypeId: google.maps.MapTypeId.TERRAIN, // Default view
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_CENTER
+            },
+            scaleControl: true,
+            streetViewControl: false,
+            rotateControl: true,
+            fullscreenControl: true,
+            fullscreenControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_TOP
+            }
+        });
+        
+        // Define major ports around the world
+        const ports = [
+            { name: "Rotterdam", position: { lat: 51.9225, lng: 4.47917 } },
+            { name: "Shanghai", position: { lat: 31.2304, lng: 121.4737 } },
+            { name: "Singapore", position: { lat: 1.2655, lng: 103.8242 } },
+            { name: "Los Angeles", position: { lat: 33.7395, lng: -118.2623 } },
+            { name: "New York", position: { lat: 40.7128, lng: -74.0060 } },
+            { name: "Sydney", position: { lat: -33.8688, lng: 151.2093 } },
+            { name: "Dubai", position: { lat: 25.2697, lng: 55.3094 } },
+            { name: "Mumbai", position: { lat: 18.9657, lng: 72.8275 } },
+            { name: "Cape Town", position: { lat: -33.9180, lng: 18.4233 } },
+            { name: "Santos", position: { lat: -23.9619, lng: -46.3042 } },
+            { name: "Hamburg", position: { lat: 53.5511, lng: 9.9937 } },
+            { name: "Busan", position: { lat: 35.1796, lng: 129.0756 } },
+            { name: "Tokyo", position: { lat: 35.6762, lng: 139.6503 } },
+            { name: "Algeciras", position: { lat: 36.1315, lng: -5.4539 } },
+            { name: "Vancouver", position: { lat: 49.2827, lng: -123.1207 } }
+        ];
+        
+        // Add markers for each port
+        ports.forEach(port => {
+            const marker = new google.maps.Marker({
+                position: port.position,
+                map: adminMap,
+                title: port.name,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 7,
+                    fillColor: "#1a4b84",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
+                }
+            });
+            
+            // Add info window for each port
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="font-family: 'Poppins', sans-serif; padding: 5px;"><strong>${port.name} Port</strong><br>Major international shipping hub</div>`
+            });
+            
+            marker.addListener("click", () => {
+                infoWindow.open(adminMap, marker);
+            });
+        });
+        
+        // Generate shipping routes
+        const routes = [
+            { from: "Rotterdam", to: "New York" },
+            { from: "Shanghai", to: "Los Angeles" },
+            { from: "Singapore", to: "Dubai" },
+            { from: "Mumbai", to: "Singapore" },
+            { from: "Cape Town", to: "Rotterdam" },
+            { from: "Sydney", to: "Shanghai" },
+            { from: "Hamburg", to: "New York" },
+            { from: "Tokyo", to: "Los Angeles" },
+            { from: "Santos", to: "Algeciras" },
+            { from: "Busan", to: "Vancouver" },
+            { from: "Dubai", to: "Mumbai" },
+            { from: "Singapore", to: "Sydney" }
+        ];
+        
+        // Function to find port position by name
+        const getPortPosition = (name) => {
+            const port = ports.find(p => p.name === name);
+            return port ? port.position : null;
+        };
+        
+        // Draw polylines for each route
+        routes.forEach(route => {
+            const fromPosition = getPortPosition(route.from);
+            const toPosition = getPortPosition(route.to);
+            
+            if (fromPosition && toPosition) {
+                // Create geodesic polyline
+                const routePath = new google.maps.Polyline({
+                    path: [fromPosition, toPosition],
+                    geodesic: true,
+                    strokeColor: "#0097b2",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2
+                });
+                
+                routePath.setMap(adminMap);
+                
+                // Add interaction for routes
+                google.maps.event.addListener(routePath, 'mouseover', function() {
+                    this.setOptions({strokeWeight: 4, strokeColor: "#00b2d8"});
+                });
+                
+                google.maps.event.addListener(routePath, 'mouseout', function() {
+                    this.setOptions({strokeWeight: 2, strokeColor: "#0097b2"});
+                });
+            }
+        });
+        
+        // Add boat markers from all companies
+        addAllCompanyBoats();
+        
+        // Add click event listeners to map type buttons
+        document.getElementById('satellite-view').addEventListener('click', function() {
+            changeAdminMapType('satellite');
+        });
+        
+        document.getElementById('terrain-view').addEventListener('click', function() {
+            changeAdminMapType('terrain');
+        });
+        
+        document.getElementById('roadmap-view').addEventListener('click', function() {
+            changeAdminMapType('roadmap');
+        });
+        
+        document.getElementById('hybrid-view').addEventListener('click', function() {
+            changeAdminMapType('hybrid');
+        });
+    }
+    
+    // Function to add boat markers from all companies to the admin map
+    function addAllCompanyBoats() {
+        // Clear any existing boat markers
+        clearAllBoatMarkers();
+        
+        // Get all companies from the table
+        const companyRows = document.querySelectorAll('.admin-companies-table tbody tr');
+        
+        companyRows.forEach(row => {
+            const companyName = row.querySelector('td:first-child').textContent;
+            const companyId = row.querySelector('td:nth-child(3) code').textContent;
+            const boatStatus = row.querySelector('td:nth-child(8) .status-badge').textContent.trim();
+            
+            // Skip companies without boat data
+            if (boatStatus === 'No Data') {
+                return;
+            }
+            
+            // Make an AJAX request to get the company's boat data
+            fetch(`/api/company/${companyId}/boats`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.boats && data.boats.length > 0) {
+                        // Add boat markers for this company
+                        data.boats.forEach(boat => {
+                            addBoatMarkerToAdminMap(boat, companyName, companyId);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching boat data for company ${companyId}:`, error);
+                });
+        });
+    }
+    
+    // Function to add a single boat marker to the admin map
+    function addBoatMarkerToAdminMap(boat, companyName, companyId) {
+        if (!isNaN(boat.latitude) && !isNaN(boat.longitude)) {
+            // Create boat marker with custom icon based on status
+            const boatMarker = new google.maps.Marker({
+                position: { lat: boat.latitude, lng: boat.longitude },
+                map: adminMap,
+                title: `${boat.name} (${companyName})`,
+                icon: {
+                    path: 'M -2,-2 L 2,-2 2,0 0,4 -2,0 Z', // Simple boat shape
+                    fillColor: boat.status.toLowerCase().includes('active') ? '#22c55e' : '#0284c7',
+                    fillOpacity: 1,
+                    scale: 3,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 1,
+                    rotation: 0,
+                    anchor: new google.maps.Point(0, 2)
+                },
+                zIndex: 10 // Ensure boat markers appear above port markers
+            });
+            
+            // Create info window with more details
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="font-family: 'Poppins', sans-serif; padding: 10px; max-width: 200px;">
+                        <h3 style="margin: 0 0 8px 0; color: #1a4b84; font-size: 16px;">${boat.name}</h3>
+                        <div style="margin-bottom: 5px;"><strong>Company:</strong> ${companyName}</div>
+                        <div style="margin-bottom: 5px;"><strong>Code:</strong> ${boat.code}</div>
+                        <div style="margin-bottom: 5px;"><strong>Status:</strong> ${boat.status}</div>
+                        <div style="margin-bottom: 5px;"><strong>Position:</strong> ${boat.latitude.toFixed(4)}, ${boat.longitude.toFixed(4)}</div>
+                        <div style="margin-bottom: 5px;"><strong>Type:</strong> ${boat.boatType}</div>
+                        <div style="margin-bottom: 5px;"><strong>Last Updated:</strong> ${new Date(boat.lastUpdated).toLocaleString()}</div>
+                    </div>
+                `
+            });
+            
+            // Add click listener to open info window
+            boatMarker.addListener('click', () => {
+                infoWindow.open(adminMap, boatMarker);
+            });
+            
+            // Store marker reference
+            allBoatMarkers.push({
+                id: boat.id,
+                companyId: companyId,
+                marker: boatMarker,
+                infoWindow: infoWindow
+            });
+        }
+    }
+    
+    // Function to clear all boat markers
+    function clearAllBoatMarkers() {
+        allBoatMarkers.forEach(({marker}) => {
+            marker.setMap(null);
+        });
+        allBoatMarkers = [];
+    }
+    
+    // Function to change map type
+    function changeAdminMapType(type) {
+        window.SRO_312D.maps.changeMapType(adminMap, type);
+        
+        // Update button active state
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.getElementById(`${type}-view`).classList.add('active');
+    }
+    
+    // Initialize the API
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use the new helper to load the API
+        window.initAdminMap = initAdminMap; // Make initAdminMap globally accessible
+        window.SRO_312D.maps.loadGoogleMapsAPI('initAdminMap');
+        
+        // Enable responsive resizing
+        const mapElement = document.getElementById('admin-map');
+        if (mapElement) {
+            window.SRO_312D.maps.resizeMap(mapElement);
+        }
+    });
+
+    // If loading takes too long, hide the spinner after 8 seconds
+    setTimeout(function() {
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading && mapLoading.style.display !== 'none') {
+            mapLoading.style.display = 'none';
+        }
+    }, 8000);
+</script> 

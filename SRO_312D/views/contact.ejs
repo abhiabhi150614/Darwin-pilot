@@ -1,0 +1,123 @@
+<%- include('partials/header') %>
+
+<section class="contact-hero">
+    <div class="contact-hero-content">
+        <h1>Contact Us</h1>
+        <p>Get in touch with the SRO 312D team</p>
+    </div>
+</section>
+
+<section class="contact-info">
+    <div class="container">
+        <div class="contact-grid">
+            <div class="contact-form-container">
+                <h2>Send Us a Message</h2>
+                <form class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Company Name</label>
+                        <input type="text" id="name" name="name" placeholder="Your company name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Your email address" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <select id="subject" name="subject" required>
+                            <option value="" disabled selected>Select a subject</option>
+                            <option value="inquiry">General Inquiry</option>
+                            <option value="demo">Request a Demo</option>
+                            <option value="support">Technical Support</option>
+                            <option value="partnership">Partnership Opportunity</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" placeholder="Your message" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="contact-details">
+                <h2>Our Contact Information</h2>
+                
+                <div class="contact-method">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-text">
+                        <h3>Email</h3>
+                        <p><a href="mailto:312d_SRO@gmail.com">312d_SRO@gmail.com</a></p>
+                    </div>
+                </div>
+                
+                <div class="contact-method">
+                    <div class="contact-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="contact-text">
+                        <h3>Support</h3>
+                        <p>Our support team is available 24/7 to assist you with any questions or issues.</p>
+                    </div>
+                </div>
+                
+                <div class="contact-availability">
+                    <h3>Business Hours</h3>
+                    <p><i class="far fa-clock"></i> Monday - Friday: 9:00 AM - 6:00 PM (GMT)</p>
+                </div>
+                
+                <div class="social-contact">
+                    <h3>Connect With Us</h3>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq-section">
+    <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>How does SRO 312D optimize shipping routes?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Our system uses advanced algorithms that consider ocean currents, weather patterns, fuel efficiency, and vessel specifications to calculate the most efficient routes possible.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>How do I get access to SRO 312D?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Contact our sales team through this form or via email, and we'll guide you through the onboarding process. We offer personalized demos to show you how our system can benefit your specific operations.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>Is my data secure with SRO 312D?</h3>
+                </div>
+                <div class="faq-answer">
+                    <p>Absolutely. We employ industry-leading security protocols to ensure that your shipping data and routes remain strictly confidential and protected at all times.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include('partials/footer') %> 

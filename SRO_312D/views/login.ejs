@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+
+<section class="login-section">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2><i class="fas fa-lock"></i> Secure Login</h2>
+                <p>Access your SRO 312D optimization dashboard</p>
+            </div>
+            
+            <% if(error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <form action="/login" method="POST" class="login-form">
+                <div class="form-group">
+                    <label for="companyId">Company ID</label>
+                    <div class="input-icon">
+                        <i class="fas fa-building"></i>
+                        <input type="text" id="companyId" name="companyId" placeholder="Enter your company ID" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-icon">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                </div>
+            </form>
+            
+            <div class="login-footer">
+                <p>New to SRO 312D? <a href="/contact">Contact us</a> to get access</p>
+                <p>Are you a ship captain? <a href="/captain/login">Login to Captain Portal</a></p>
+            </div>
+        </div>
+        
+        <div class="login-benefits">
+            <h3>Benefits of SRO 312D:</h3>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Access to optimized shipping routes</li>
+                <li><i class="fas fa-check-circle"></i> Real-time resource savings analytics</li>
+                <li><i class="fas fa-check-circle"></i> Reduced carbon footprint</li>
+                <li><i class="fas fa-check-circle"></i> Secure and confidential data handling</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<%- include('partials/footer') %> 

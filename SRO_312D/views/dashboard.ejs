@@ -1,0 +1,1874 @@
+<%- include('partials/header', { authenticated: true }) %>
+
+<section class="dashboard">
+    <div class="dashboard-header">
+        <h1>Welcome to Your SRO 312D Dashboard</h1>
+        <p>Access your optimized routes and resource savings analysis</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    <% if(typeof success !== 'undefined' && success && success.length > 0) { %>
+        <div class="alert alert-success">
+            <%= success %>
+        </div>
+    <% } %>
+    
+    <% if(typeof error !== 'undefined' && error && error.length > 0) { %>
+        <div class="alert alert-error">
+            <%= error %>
+        </div>
+    <% } %>
+    
+    <div class="dashboard-grid">
+        <div class="dashboard-card route-finder full-width">
+            <div class="card-header">
+                <h3><i class="fas fa-globe-americas"></i> World Map View</h3>
+                <div class="map-controls">
+                    <button id="satellite-view" class="map-type-btn">Satellite</button>
+                    <button id="terrain-view" class="map-type-btn active">Terrain</button>
+                    <button id="roadmap-view" class="map-type-btn">Roadmap</button>
+                    <button id="hybrid-view" class="map-type-btn">Hybrid</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="route-map">
+                    <div id="map-container" class="map-container">
+                        <div id="map" style="width: 100%; height: 60vh; min-height: 500px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></div>
+                        <div id="map-loading" class="map-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading map...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-info">
+                    <p><i class="fas fa-info-circle"></i> View global shipping routes and optimize your maritime transportation.</p>
+                    <a href="#" class="btn btn-primary">View Optimized Routes</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-card resource-analysis">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-pie"></i> Resource Savings</h3>
+            </div>
+            <div class="card-body">
+                <p>Analyze your saved resources and emission reductions.</p>
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <div class="placeholder-chart">
+                            <div class="chart-bar" style="height: 60%;"></div>
+                            <div class="chart-bar" style="height: 80%;"></div>
+                            <div class="chart-bar" style="height: 40%;"></div>
+                            <div class="chart-bar" style="height: 70%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="savings-metrics">
+                    <div class="metric">
+                        <span class="metric-value">15%</span>
+                        <span class="metric-label">Fuel Savings</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value">12%</span>
+                        <span class="metric-label">Time Saved</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value">18%</span>
+                        <span class="metric-label">CO₂ Reduction</span>
+                    </div>
+                </div>
+                <a href="#" class="btn btn-primary">View Detailed Analysis</a>
+            </div>
+        </div>
+        
+        <!-- Your Boats Information -->
+        <div class="dashboard-card boats-info full-width">
+            <div class="card-header">
+                <h3><i class="fas fa-ship"></i> Your Boats Information</h3>
+                <div class="card-actions">
+                    <button id="add-boat-btn" class="btn-primary-action">
+                        <i class="fas fa-plus"></i> Add New Boat
+                    </button>
+                    <form action="/api/clear-boats" method="POST" style="display: inline;">
+                        <button type="submit" onclick="return confirm('Are you sure you want to remove ALL boats? This action cannot be undone.');" class="btn-danger-action">
+                            <i class="fas fa-trash"></i> Clear All Boats
+                        </button>
+                    </form>
+                    <button id="show-on-map-btn" class="btn-map-action">
+                        <i class="fas fa-map-marker-alt"></i> Show on Map
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <% if(typeof boatData !== 'undefined' && boatData && boatData.length > 0) { %>
+                    <div class="boats-table-container">
+                        <table class="boats-table">
+                            <thead>
+                                <tr>
+                                    <th>Boat Name</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                    <th>Type</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% boatData.forEach(boat => { %>
+                                    <tr data-boat-id="<%= boat.id %>" data-lat="<%= boat.latitude %>" data-lng="<%= boat.longitude %>">
+                                        <td><strong><%= boat.name %></strong></td>
+                                        <td><code><%= boat.code %></code></td>
+                                        <td>
+                                            <span class="boat-status boat-status-<%= boat.status %>">
+                                                <%= boat.status.charAt(0).toUpperCase() + boat.status.slice(1) %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% if(boat.portName) { %>
+                                                <%= boat.portName %>
+                                            <% } else { %>
+                                                <%= boat.latitude.toFixed(4) %>, <%= boat.longitude.toFixed(4) %>
+                                            <% } %>
+                                        </td>
+                                        <td><%= boat.boatType.charAt(0).toUpperCase() + boat.boatType.slice(1) %></td>
+                                        <td><%= new Date(boat.lastUpdated).toLocaleString() %></td>
+                                        <td>
+                                            <button class="boat-action-btn view-boat" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="boat-action-btn locate-boat" title="Locate on Map" data-lat="<%= boat.latitude %>" data-lng="<%= boat.longitude %>">
+                                                <i class="fas fa-map-marker"></i>
+                                            </button>
+                                            <button class="boat-action-btn view-movement" title="View Ship Movement" data-boat-id="<%= boat.id %>">
+                                                <i class="fas fa-route"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="no-boats-message">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No boat information available at this time. Please contact support if you believe this is an error.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        
+        <div class="dashboard-card quick-actions">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="action-buttons">
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>New Route</span>
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-history"></i>
+                        <span>Route History</span>
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-file-export"></i>
+                        <span>Export Data</span>
+                    </a>
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-card recent-activity">
+            <div class="card-header">
+                <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Route optimization completed</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-save"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Route saved to favorites</div>
+                            <div class="activity-time">Yesterday</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-file-export"></i></div>
+                        <div class="activity-content">
+                            <div class="activity-title">Analytics report exported</div>
+                            <div class="activity-time">3 days ago</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Boat Movement Simulation Modal -->
+<div id="shipMovementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="movementModalTitle">Ship Movement Simulation</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="simulation-map-container">
+                <div id="simulation-map" style="width: 100%; height: 60vh; min-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></div>
+                <div id="simulation-loading" class="map-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading simulation...</p>
+                </div>
+            </div>
+            <div class="simulation-controls">
+                <button id="start-simulation" class="sim-control-btn"><i class="fas fa-play"></i> Start</button>
+                <button id="pause-simulation" class="sim-control-btn" disabled><i class="fas fa-pause"></i> Pause</button>
+                <button id="reset-simulation" class="sim-control-btn"><i class="fas fa-redo"></i> Reset</button>
+                <div class="simulation-status">
+                    <span>Status: </span><span id="simulation-status-text">Ready</span>
+                </div>
+            </div>
+            <div class="simulation-info">
+                <div class="info-item">
+                    <span class="info-label">Current Speed:</span>
+                    <span id="current-speed" class="info-value">0 knots</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Distance Traveled:</span>
+                    <span id="distance-traveled" class="info-value">0 nautical miles</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Estimated Arrival:</span>
+                    <span id="estimated-arrival" class="info-value">Calculating...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Boat Modal -->
+<div id="addBoatModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Boat</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="add-boat-form" method="POST" action="/api/add-boat">
+                <div class="form-group">
+                    <label for="ship_id">Ship ID*</label>
+                    <input type="text" id="ship_id" name="id" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="ship_pin">PIN (4 digits)*</label>
+                    <input type="text" id="ship_pin" name="pin" pattern="[0-9]{4}" class="form-control" required maxlength="4">
+                    <small>4-digit security PIN for this vessel</small>
+                </div>
+                <div class="form-group">
+                    <label for="ship_name">Ship Name*</label>
+                    <input type="text" id="ship_name" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="ship_code">Ship Code (Optional)</label>
+                    <input type="text" id="ship_code" name="code" class="form-control">
+                    <small>Ship identification code (e.g. ABC-123)</small>
+                </div>
+                <div class="form-group">
+                    <label for="ship_type">Ship Type*</label>
+                    <select id="ship_type" name="boatType" class="form-control" required>
+                        <option value="">Select a type</option>
+                        <option value="cargo">Cargo</option>
+                        <option value="tanker">Tanker</option>
+                        <option value="container">Container</option>
+                        <option value="passenger">Passenger</option>
+                        <option value="fishing">Fishing</option>
+                        <option value="research">Research</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="source_location">Source Location*</label>
+                    <input type="text" id="source_location" name="portName" class="form-control" required>
+                    <small>Current port or location of the vessel</small>
+                </div>
+                <div class="form-group location-coordinates">
+                    <div>
+                        <label for="latitude">Latitude*</label>
+                        <input type="number" id="latitude" name="latitude" class="form-control" required step="0.000001" min="-90" max="90">
+                    </div>
+                    <div>
+                        <label for="longitude">Longitude*</label>
+                        <input type="number" id="longitude" name="longitude" class="form-control" required step="0.000001" min="-180" max="180">
+                    </div>
+                    <button type="button" id="get-location-btn" class="btn-secondary">
+                        <i class="fas fa-map-marker-alt"></i> Find on Map
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="ship_status">Status*</label>
+                    <select id="ship_status" name="status" class="form-control" required>
+                        <option value="docked">Docked</option>
+                        <option value="active">Active</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Boat</button>
+                    <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .map-controls {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+    }
+    
+    .map-type-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background-color: #f1f5f9;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .map-type-btn:hover {
+        background-color: #e2e8f0;
+    }
+    
+    .map-type-btn.active {
+        background-color: #1a4b84;
+        color: white;
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+    }
+    
+    .map-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+    }
+    
+    .map-info p {
+        color: #4b5563;
+        font-size: 14px;
+    }
+    
+    .map-info i {
+        color: #1a4b84;
+        margin-right: 5px;
+    }
+    
+    .map-container {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Boat Information Styles */
+    .boats-info {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .card-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-map-action {
+        padding: 6px 12px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    
+    .btn-map-action:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .boats-table-container {
+        overflow-x: auto;
+        margin-bottom: 15px;
+    }
+    
+    .boats-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: 0.9rem;
+    }
+    
+    .boats-table thead {
+        background-color: #f8fafc;
+    }
+    
+    .boats-table th {
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark-color);
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .boats-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .boats-table tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .boat-status {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .boat-status-docked {
+        background-color: #e6f7ff;
+        color: #0069c0;
+    }
+    
+    .boat-status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .boat-action-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        border: none;
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 5px;
+        transition: all 0.2s;
+    }
+    
+    .boat-action-btn:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .no-boats-message {
+        padding: 30px 20px;
+        text-align: center;
+        color: var(--gray-color);
+        background-color: #f8fafc;
+        border-radius: 4px;
+    }
+    
+    .no-boats-message i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+        .boats-table {
+            font-size: 0.8rem;
+        }
+        
+        .boats-table th,
+        .boats-table td {
+            padding: 8px 10px;
+        }
+        
+        .boat-action-btn {
+            width: 28px;
+            height: 28px;
+        }
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+    
+    .modal-content {
+        background-color: #fff;
+        margin: 3% auto;
+        width: 90%;
+        max-width: 1000px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-50px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+    
+    .modal-header {
+        padding: 15px 20px;
+        background-color: #1a4b84;
+        color: white;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .close-modal {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-modal:hover {
+        color: #ddd;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .simulation-controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .sim-control-btn {
+        padding: 8px 15px;
+        background-color: #1a4b84;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    
+    .sim-control-btn:hover {
+        background-color: #0f3a65;
+    }
+    
+    .sim-control-btn:disabled {
+        background-color: #cbd5e1;
+        cursor: not-allowed;
+    }
+    
+    .simulation-status {
+        margin-left: auto;
+        font-size: 0.9rem;
+        color: #4b5563;
+    }
+    
+    #simulation-status-text {
+        font-weight: 600;
+        color: #1a4b84;
+    }
+    
+    .simulation-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin-bottom: 5px;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a4b84;
+    }
+    
+    .boat-action-btn.view-movement {
+        background-color: #047857;
+        color: white;
+    }
+    
+    .boat-action-btn.view-movement:hover {
+        background-color: #065f46;
+    }
+    
+    /* Add Boat Button Styles */
+    .btn-primary-action {
+        padding: 6px 12px;
+        background-color: #10b981;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        margin-right: 10px;
+    }
+    
+    .btn-primary-action:hover {
+        background-color: #059669;
+    }
+    
+    /* Clear Boats Button Styles */
+    .btn-danger-action {
+        padding: 6px 12px;
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        margin-right: 10px;
+    }
+    
+    .btn-danger-action:hover {
+        background-color: #dc2626;
+    }
+    
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #1a4b84;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 14px;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #1a4b84;
+        box-shadow: 0 0 0 3px rgba(26, 75, 132, 0.1);
+    }
+    
+    .form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #64748b;
+        font-size: 12px;
+    }
+    
+    .location-coordinates {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .btn-primary {
+        padding: 10px 20px;
+        background-color: #1a4b84;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0f3a65;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        background-color: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #e2e8f0;
+    }
+    
+    #get-location-btn {
+        height: 40px;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    /* Flash Messages */
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .alert:before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .alert-success {
+        background-color: #dcfce7;
+        color: #166534;
+        border-left: 5px solid #10b981;
+    }
+    
+    .alert-success:before {
+        content: "\f00c"; /* check icon */
+    }
+    
+    .alert-error {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border-left: 5px solid #ef4444;
+    }
+    
+    .alert-error:before {
+        content: "\f071"; /* exclamation-triangle icon */
+    }
+</style>
+
+<!-- Include Maps Helper -->
+<script src="/js/maps-helper.js"></script>
+
+<!-- Google Maps Script -->
+<script>
+    let map;
+    let boatMarkers = []; // Array to store boat markers
+    
+    function initMap() {
+        // Hide loading spinner when map is initialized
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading) {
+            mapLoading.style.display = 'none';
+        }
+        
+        // Create a new map centered at a point with a good global view
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 20, lng: 0 }, // Center that shows most of the world
+            zoom: 2, // Zoom level to see the entire world
+            mapTypeId: google.maps.MapTypeId.TERRAIN, // Default view
+            mapTypeControl: true, // Enable built-in map type control
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_CENTER
+            },
+            scaleControl: true,
+            streetViewControl: false,
+            rotateControl: true,
+            fullscreenControl: true,
+            fullscreenControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_TOP
+            }
+        });
+        
+        // Define major ports around the world (expanded list)
+        const ports = [
+            { name: "Rotterdam", position: { lat: 51.9225, lng: 4.47917 } },
+            { name: "Shanghai", position: { lat: 31.2304, lng: 121.4737 } },
+            { name: "Singapore", position: { lat: 1.2655, lng: 103.8242 } },
+            { name: "Los Angeles", position: { lat: 33.7395, lng: -118.2623 } },
+            { name: "New York", position: { lat: 40.7128, lng: -74.0060 } },
+            { name: "Sydney", position: { lat: -33.8688, lng: 151.2093 } },
+            { name: "Dubai", position: { lat: 25.2697, lng: 55.3094 } },
+            { name: "Mumbai", position: { lat: 18.9657, lng: 72.8275 } },
+            { name: "Cape Town", position: { lat: -33.9180, lng: 18.4233 } },
+            { name: "Santos", position: { lat: -23.9619, lng: -46.3042 } },
+            { name: "Hamburg", position: { lat: 53.5511, lng: 9.9937 } },
+            { name: "Busan", position: { lat: 35.1796, lng: 129.0756 } },
+            { name: "Tokyo", position: { lat: 35.6762, lng: 139.6503 } },
+            { name: "Algeciras", position: { lat: 36.1315, lng: -5.4539 } },
+            { name: "Vancouver", position: { lat: 49.2827, lng: -123.1207 } }
+        ];
+        
+        // Add markers for each port
+        ports.forEach(port => {
+            const marker = new google.maps.Marker({
+                position: port.position,
+                map: map,
+                title: port.name,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 7,
+                    fillColor: "#1a4b84",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
+                }
+            });
+            
+            // Add info window for each port
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="font-family: 'Poppins', sans-serif; padding: 5px;"><strong>${port.name} Port</strong><br>Major international shipping hub</div>`
+            });
+            
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
+        });
+        
+        // Generate more comprehensive shipping routes
+        const routes = [
+            { from: "Rotterdam", to: "New York" },
+            { from: "Shanghai", to: "Los Angeles" },
+            { from: "Singapore", to: "Dubai" },
+            { from: "Mumbai", to: "Singapore" },
+            { from: "Cape Town", to: "Rotterdam" },
+            { from: "Sydney", to: "Shanghai" },
+            { from: "Hamburg", to: "New York" },
+            { from: "Tokyo", to: "Los Angeles" },
+            { from: "Santos", to: "Algeciras" },
+            { from: "Busan", to: "Vancouver" },
+            { from: "Dubai", to: "Mumbai" },
+            { from: "Singapore", to: "Sydney" }
+        ];
+        
+        // Function to find port position by name
+        const getPortPosition = (name) => {
+            const port = ports.find(p => p.name === name);
+            return port ? port.position : null;
+        };
+        
+        // Draw polylines for each route with improved styling
+        routes.forEach(route => {
+            const fromPosition = getPortPosition(route.from);
+            const toPosition = getPortPosition(route.to);
+            
+            if (fromPosition && toPosition) {
+                // Create geodesic polyline
+                const routePath = new google.maps.Polyline({
+                    path: [fromPosition, toPosition],
+                    geodesic: true,
+                    strokeColor: "#0097b2",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2
+                });
+                
+                routePath.setMap(map);
+                
+                // Add interaction for routes
+                google.maps.event.addListener(routePath, 'mouseover', function() {
+                    this.setOptions({strokeWeight: 4, strokeColor: "#00b2d8"});
+                });
+                
+                google.maps.event.addListener(routePath, 'mouseout', function() {
+                    this.setOptions({strokeWeight: 2, strokeColor: "#0097b2"});
+                });
+            }
+        });
+        
+        // Add click event listeners to map type buttons
+        document.getElementById('satellite-view').addEventListener('click', function() {
+            changeMapType('satellite');
+        });
+        
+        document.getElementById('terrain-view').addEventListener('click', function() {
+            changeMapType('terrain');
+        });
+        
+        document.getElementById('roadmap-view').addEventListener('click', function() {
+            changeMapType('roadmap');
+        });
+        
+        document.getElementById('hybrid-view').addEventListener('click', function() {
+            changeMapType('hybrid');
+        });
+        
+        // Fetch the latest boat data and add markers
+        fetchBoatDataAndUpdateMarkers();
+    }
+    
+    // Function to fetch boat data from API
+    function fetchBoatDataAndUpdateMarkers() {
+        fetch('/api/my-boats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.boats && data.boats.length > 0) {
+                    // Update the boat data table
+                    updateBoatDataTable(data.boats);
+                    
+                    // Add markers for boats
+                    addBoatMarkers(data.boats);
+                } else {
+                    console.log('No boat data available');
+                    // Show no boats message if the data was empty
+                    const boatsInfoBody = document.querySelector('.boats-info .card-body');
+                    if (boatsInfoBody) {
+                        boatsInfoBody.innerHTML = `
+                            <div class="no-boats-message">
+                                <i class="fas fa-info-circle"></i>
+                                <p>No boat information available at this time. Please contact support if you believe this is an error.</p>
+                            </div>
+                        `;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching boat data:', error);
+            });
+    }
+    
+    // Function to update the boat data table
+    function updateBoatDataTable(boats) {
+        const boatsInfoBody = document.querySelector('.boats-info .card-body');
+        if (!boatsInfoBody) return;
+        
+        if (boats && boats.length > 0) {
+            let tableHtml = `
+                <div class="boats-table-container">
+                    <table class="boats-table">
+                        <thead>
+                            <tr>
+                                <th>Boat Name</th>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            boats.forEach(boat => {
+                tableHtml += `
+                    <tr data-boat-id="${boat.id}" data-lat="${boat.latitude}" data-lng="${boat.longitude}" data-name="${boat.name}" data-code="${boat.code}" data-type="${boat.boatType}" data-status="${boat.status}">
+                        <td><strong>${boat.name}</strong></td>
+                        <td><code>${boat.code}</code></td>
+                        <td>
+                            <span class="boat-status boat-status-${boat.status}">
+                                ${boat.status.charAt(0).toUpperCase() + boat.status.slice(1)}
+                            </span>
+                        </td>
+                        <td>
+                            ${boat.portName ? boat.portName : boat.latitude.toFixed(4) + ', ' + boat.longitude.toFixed(4)}
+                        </td>
+                        <td>${boat.boatType.charAt(0).toUpperCase() + boat.boatType.slice(1)}</td>
+                        <td>${new Date(boat.lastUpdated).toLocaleString()}</td>
+                        <td>
+                            <button class="boat-action-btn view-boat" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="boat-action-btn locate-boat" title="Locate on Map" data-lat="${boat.latitude}" data-lng="${boat.longitude}">
+                                <i class="fas fa-map-marker"></i>
+                            </button>
+                            <button class="boat-action-btn view-movement" title="View Ship Movement" data-boat-id="${boat.id}">
+                                <i class="fas fa-route"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            boatsInfoBody.innerHTML = tableHtml;
+            
+            // Add event listeners to buttons
+            addEventListenersToButtons();
+        } else {
+            boatsInfoBody.innerHTML = `
+                <div class="no-boats-message">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No boat information available at this time. Please contact support if you believe this is an error.</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Function to add boat markers to the map
+    function addBoatMarkers(boats = null) {
+        // Clear any existing boat markers
+        clearBoatMarkers();
+        
+        // If no boats were provided, try to get them from the table
+        if (!boats) {
+            boats = [];
+            const boatRows = document.querySelectorAll('.boats-table tbody tr');
+            
+            boatRows.forEach(row => {
+                const id = row.getAttribute('data-boat-id');
+                const lat = parseFloat(row.getAttribute('data-lat'));
+                const lng = parseFloat(row.getAttribute('data-lng'));
+                const name = row.querySelector('td:first-child strong').textContent;
+                const code = row.querySelector('td:nth-child(2) code').textContent;
+                const status = row.querySelector('.boat-status').textContent.trim();
+                const type = row.querySelector('td:nth-child(5)').textContent.trim();
+                
+                boats.push({
+                    id,
+                    name,
+                    code,
+                    latitude: lat,
+                    longitude: lng,
+                    status: status.toLowerCase(),
+                    boatType: type.toLowerCase()
+                });
+            });
+        }
+        
+        if (boats.length > 0) {
+            boats.forEach(boat => {
+                if (!isNaN(boat.latitude) && !isNaN(boat.longitude)) {
+                    // Create boat marker with custom icon based on status
+                    const boatMarker = new google.maps.Marker({
+                        position: { lat: boat.latitude, lng: boat.longitude },
+                        map: map,
+                        title: boat.name,
+                        icon: {
+                            path: 'M -2,-2 L 2,-2 2,0 0,4 -2,0 Z', // Simple boat shape
+                            fillColor: boat.status.toLowerCase().includes('active') ? '#22c55e' : '#0284c7',
+                            fillOpacity: 1,
+                            scale: 3,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 1,
+                            rotation: 0,
+                            anchor: new google.maps.Point(0, 2)
+                        },
+                        zIndex: 10 // Ensure boat markers appear above port markers
+                    });
+                    
+                    // Create info window for the boat
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="font-family: 'Poppins', sans-serif; padding: 10px; max-width: 200px;">
+                                <h3 style="margin: 0 0 8px 0; color: #1a4b84; font-size: 16px;">${boat.name}</h3>
+                                <div style="margin-bottom: 5px;"><strong>Code:</strong> ${boat.code}</div>
+                                <div style="margin-bottom: 5px;"><strong>Status:</strong> ${boat.status.charAt(0).toUpperCase() + boat.status.slice(1)}</div>
+                                <div style="margin-bottom: 5px;"><strong>Position:</strong> ${boat.latitude.toFixed(4)}, ${boat.longitude.toFixed(4)}</div>
+                                <div style="text-align: center; margin-top: 10px;">
+                                    <button onclick="centerOnBoat('${boat.id}')" 
+                                            style="background-color: #1a4b84; color: white; border: none; 
+                                                   padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                                        Zoom to Boat
+                                    </button>
+                                </div>
+                            </div>
+                        `
+                    });
+                    
+                    // Add click listener to open info window
+                    boatMarker.addListener('click', () => {
+                        // Close any open info windows
+                        infoWindow.open(map, boatMarker);
+                    });
+                    
+                    // Store marker reference
+                    boatMarkers.push({
+                        id: boat.id,
+                        marker: boatMarker,
+                        infoWindow: infoWindow
+                    });
+                }
+            });
+            
+            // If we have boat markers, add a button to fit bounds to all boats
+            if (boatMarkers.length > 0) {
+                // Add a button to fit to all boats if not already present
+                if (!document.getElementById('fit-to-boats')) {
+                    const controlDiv = document.createElement('div');
+                    controlDiv.style.padding = '10px';
+                    
+                    const controlUI = document.createElement('div');
+                    controlUI.style.backgroundColor = '#1a4b84';
+                    controlUI.style.borderRadius = '4px';
+                    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+                    controlUI.style.cursor = 'pointer';
+                    controlUI.style.textAlign = 'center';
+                    controlUI.style.margin = '10px';
+                    controlUI.title = 'Click to show all boats';
+                    controlUI.id = 'fit-to-boats';
+                    controlDiv.appendChild(controlUI);
+                    
+                    const controlText = document.createElement('div');
+                    controlText.style.color = 'white';
+                    controlText.style.fontFamily = 'Poppins, Arial, sans-serif';
+                    controlText.style.fontSize = '12px';
+                    controlText.style.lineHeight = '20px';
+                    controlText.style.paddingLeft = '5px';
+                    controlText.style.paddingRight = '5px';
+                    controlText.innerHTML = '<i class="fas fa-ship"></i> Show All Boats';
+                    controlUI.appendChild(controlText);
+                    
+                    controlUI.addEventListener('click', function() {
+                        fitMapToBoats();
+                    });
+                    
+                    map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv);
+                }
+            }
+        }
+    }
+    
+    // Function to clear all boat markers
+    function clearBoatMarkers() {
+        boatMarkers.forEach(({marker}) => {
+            marker.setMap(null);
+        });
+        boatMarkers = [];
+    }
+    
+    // Function to center the map on a specific boat
+    function centerOnBoat(boatId) {
+        const boatItem = boatMarkers.find(item => item.id === boatId);
+        if (boatItem) {
+            map.setZoom(8); // Zoom in closer
+            map.setCenter(boatItem.marker.getPosition());
+            boatItem.infoWindow.open(map, boatItem.marker);
+        }
+    }
+    
+    // Function to fit the map to show all boats
+    function fitMapToBoats() {
+        if (boatMarkers.length > 0) {
+            const bounds = new google.maps.LatLngBounds();
+            boatMarkers.forEach(({marker}) => {
+                bounds.extend(marker.getPosition());
+            });
+            map.fitBounds(bounds);
+            
+            // Don't zoom in too far
+            const zoom = map.getZoom();
+            if (zoom > 10) {
+                map.setZoom(10);
+            }
+        }
+    }
+    
+    // Function to change map type
+    function changeMapType(type) {
+        window.SRO_312D.maps.changeMapType(map, type);
+        
+        // Update button active state
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.getElementById(`${type}-view`).classList.add('active');
+    }
+    
+    // Initialize the API
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use the new helper to load the API
+        window.initMap = initMap; // Make initMap globally accessible
+        window.centerOnBoat = centerOnBoat; // Make centerOnBoat globally accessible
+        window.SRO_312D.maps.loadGoogleMapsAPI('initMap');
+        
+        // Enable responsive resizing
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+            window.SRO_312D.maps.resizeMap(mapElement);
+        }
+        
+        // Add event listener to the "Show on Map" button
+        const showOnMapBtn = document.getElementById('show-on-map-btn');
+        if (showOnMapBtn) {
+            showOnMapBtn.addEventListener('click', function() {
+                // First make sure all boat markers are on the map
+                addBoatMarkers();
+                
+                // Then fit the map to show all boats
+                fitMapToBoats();
+                
+                // Scroll to the map
+                document.getElementById('map-container').scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    });
+
+    // If loading takes too long, hide the spinner after 8 seconds
+    setTimeout(function() {
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading && mapLoading.style.display !== 'none') {
+            mapLoading.style.display = 'none';
+        }
+    }, 8000);
+</script>
+
+<script>
+    // Add event listeners to all buttons
+    function addEventListenersToButtons() {
+        // Add event listeners to all "Locate on Map" buttons
+        const locateButtons = document.querySelectorAll('.locate-boat');
+        locateButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const boatId = row.getAttribute('data-boat-id');
+                
+                // Center on this specific boat
+                centerOnBoat(boatId);
+                
+                // Scroll to the map
+                document.getElementById('map-container').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        // Add event listeners to "View Ship Movement" buttons
+        const movementButtons = document.querySelectorAll('.view-movement');
+        movementButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const boatId = row.getAttribute('data-boat-id');
+                const boatName = row.getAttribute('data-name');
+                const boatCode = row.getAttribute('data-code');
+                const boatType = row.getAttribute('data-type');
+                const latitude = parseFloat(row.getAttribute('data-lat'));
+                const longitude = parseFloat(row.getAttribute('data-lng'));
+                
+                // Update modal title with boat name
+                document.getElementById('movementModalTitle').textContent = `${boatName} (${boatCode}) Movement Simulation`;
+                
+                // Open the modal
+                const modal = document.getElementById('shipMovementModal');
+                modal.style.display = 'block';
+                
+                // Initialize simulation map
+                initSimulationMap(boatId, boatName, boatCode, boatType, latitude, longitude);
+            });
+        });
+    }
+    
+    // Ship Movement Simulation Map
+    let simulationMap;
+    let simulationMarker;
+    let simulationPath;
+    let simulationRoutes = [];
+    let simulationAnimationId;
+    let simulationStatus = 'ready'; // ready, running, paused
+    let currentPosition = null;
+    let destinationPosition = null;
+    let currentRouteIndex = 0;
+    let currentRouteProgress = 0;
+    let destinationETA = null;
+    let distanceTraveled = 0;
+    
+    // Initialize the ship movement simulation map
+    function initSimulationMap(boatId, boatName, boatCode, boatType, startLat, startLng) {
+        // Hide loading spinner after a delay
+        setTimeout(() => {
+            const loadingDiv = document.getElementById('simulation-loading');
+            if (loadingDiv) loadingDiv.style.display = 'none';
+        }, 1000);
+        
+        // Create a new map
+        simulationMap = new google.maps.Map(document.getElementById("simulation-map"), {
+            center: { lat: startLat, lng: startLng }, 
+            zoom: 6,
+            mapTypeId: google.maps.MapTypeId.TERRAIN,
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_CENTER
+            },
+            scaleControl: true,
+            streetViewControl: false,
+            rotateControl: true,
+            fullscreenControl: true
+        });
+        
+        // Create marker for the boat
+        simulationMarker = new google.maps.Marker({
+            position: { lat: startLat, lng: startLng },
+            map: simulationMap,
+            title: boatName,
+            icon: {
+                path: 'M -2,-2 L 2,-2 2,0 0,4 -2,0 Z', // Simple boat shape
+                fillColor: getColorForBoatType(boatType),
+                fillOpacity: 1,
+                scale: 4,
+                strokeColor: '#ffffff',
+                strokeWeight: 1,
+                rotation: 0,
+                anchor: new google.maps.Point(0, 2)
+            }
+        });
+        
+        // Reset current position
+        currentPosition = { lat: startLat, lng: startLng };
+        
+        // Generate simulation routes
+        generateSimulationRoutes(startLat, startLng);
+        
+        // Draw initial path (with projected route)
+        drawSimulationPath();
+        
+        // Set up event listeners for simulation controls
+        document.getElementById('start-simulation').addEventListener('click', startSimulation);
+        document.getElementById('pause-simulation').addEventListener('click', pauseSimulation);
+        document.getElementById('reset-simulation').addEventListener('click', resetSimulation);
+        
+        // Close button for modal
+        document.querySelector('.close-modal').addEventListener('click', () => {
+            resetSimulation();
+            document.getElementById('shipMovementModal').style.display = 'none';
+        });
+    }
+    
+    // Get color for boat type
+    function getColorForBoatType(boatType) {
+        const colors = {
+            'cargo': '#3498db',
+            'tanker': '#e74c3c',
+            'container': '#2ecc71',
+            'passenger': '#9b59b6',
+            'fishing': '#f39c12',
+            'research': '#1abc9c',
+            'luxury': '#f1c40f',
+            'other': '#7f8c8d'
+        };
+        return colors[boatType] || '#3498db';
+    }
+    
+    // Generate ocean routes for simulation
+    function generateSimulationRoutes(startLat, startLng) {
+        simulationRoutes = [];
+        
+        // Helper to check if point is on land (very simplified)
+        function isLikelyOnLand(lat, lng) {
+            // Simple check for some known land masses
+            // Africa
+            if (lat > -35 && lat < 38 && lng > -20 && lng < 50) return true;
+            // Australia
+            if (lat > -44 && lat < -10 && lng > 110 && lng < 155) return true;
+            // South America
+            if (lat > -56 && lat < 13 && lng > -81 && lng < -34) return true;
+            // North America
+            if (lat > 15 && lat < 72 && lng > -170 && lng < -50) return true;
+            // Europe & Asia
+            if (lat > 35 && lat < 70 && lng > -10 && lng < 170) return true;
+            
+            return false;
+        }
+        
+        // Function to generate a random point in water near the start point
+        function generateWaterPoint(baseLat, baseLng, maxDistance) {
+            let lat, lng;
+            let attempts = 0;
+            
+            do {
+                // Random direction
+                const angle = Math.random() * 2 * Math.PI;
+                // Random distance (in degrees, approximate)
+                const distance = (Math.random() * maxDistance) / 111; // 111km per degree
+                
+                // Calculate new point
+                lat = baseLat + distance * Math.sin(angle);
+                lng = baseLng + distance * Math.cos(angle);
+                
+                attempts++;
+            } while (isLikelyOnLand(lat, lng) && attempts < 20);
+            
+            return { lat, lng };
+        }
+        
+        // Generate 3-5 waypoints for the route
+        const numWaypoints = 3 + Math.floor(Math.random() * 3);
+        let previousLat = startLat;
+        let previousLng = startLng;
+        
+        for (let i = 0; i < numWaypoints; i++) {
+            // Generate waypoint with increasing distance from previous point
+            const maxDistance = 500 + i * 200; // km
+            const { lat, lng } = generateWaterPoint(previousLat, previousLng, maxDistance);
+            
+            const numPoints = 20 + Math.floor(Math.random() * 30);
+            const segment = [];
+            
+            // Create a smooth path between previous point and new waypoint
+            for (let j = 0; j <= numPoints; j++) {
+                const ratio = j / numPoints;
+                const pointLat = previousLat + ratio * (lat - previousLat);
+                const pointLng = previousLng + ratio * (lng - previousLng);
+                segment.push({ lat: pointLat, lng: pointLng });
+            }
+            
+            simulationRoutes.push(segment);
+            previousLat = lat;
+            previousLng = lng;
+        }
+        
+        // Set destination as the end of the last route
+        const lastRoute = simulationRoutes[simulationRoutes.length - 1];
+        destinationPosition = lastRoute[lastRoute.length - 1];
+        
+        // Calculate ETA (random value between 24-72 hours from now)
+        const etaHours = 24 + Math.floor(Math.random() * 48);
+        destinationETA = new Date();
+        destinationETA.setHours(destinationETA.getHours() + etaHours);
+        
+        // Update ETA display
+        document.getElementById('estimated-arrival').textContent = destinationETA.toLocaleString();
+    }
+    
+    // Draw the current path on the map
+    function drawSimulationPath() {
+        // If there's an existing path, remove it
+        if (simulationPath) {
+            simulationPath.setMap(null);
+        }
+        
+        // Create path array from current position through projected route
+        const pathCoordinates = [currentPosition];
+        
+        // Add coordinates for the current route (from the current progress)
+        if (currentRouteIndex < simulationRoutes.length) {
+            const currentRoute = simulationRoutes[currentRouteIndex];
+            const startIndex = Math.floor(currentRouteProgress * (currentRoute.length - 1));
+            
+            for (let i = startIndex + 1; i < currentRoute.length; i++) {
+                pathCoordinates.push(currentRoute[i]);
+            }
+            
+            // Add remaining routes
+            for (let i = currentRouteIndex + 1; i < simulationRoutes.length; i++) {
+                pathCoordinates.push(...simulationRoutes[i]);
+            }
+        }
+        
+        // Create the polyline
+        simulationPath = new google.maps.Polyline({
+            path: pathCoordinates,
+            geodesic: true,
+            strokeColor: '#0097b2',
+            strokeOpacity: 0.6,
+            strokeWeight: 3,
+            icons: [{
+                icon: {
+                    path: 'M 0,-1 0,1',
+                    strokeOpacity: 1,
+                    scale: 3
+                },
+                offset: '0',
+                repeat: '15px'
+            }]
+        });
+        
+        simulationPath.setMap(simulationMap);
+    }
+    
+    // Start the simulation
+    function startSimulation() {
+        if (simulationStatus === 'running') return;
+        
+        simulationStatus = 'running';
+        document.getElementById('simulation-status-text').textContent = 'Running';
+        document.getElementById('start-simulation').disabled = true;
+        document.getElementById('pause-simulation').disabled = false;
+        
+        // Run the animation loop
+        animateBoat();
+    }
+    
+    // Pause the simulation
+    function pauseSimulation() {
+        if (simulationStatus !== 'running') return;
+        
+        simulationStatus = 'paused';
+        document.getElementById('simulation-status-text').textContent = 'Paused';
+        document.getElementById('start-simulation').disabled = false;
+        document.getElementById('pause-simulation').disabled = true;
+        
+        // Cancel the animation
+        if (simulationAnimationId) {
+            cancelAnimationFrame(simulationAnimationId);
+        }
+    }
+    
+    // Reset the simulation
+    function resetSimulation() {
+        // Cancel any ongoing animation
+        if (simulationAnimationId) {
+            cancelAnimationFrame(simulationAnimationId);
+        }
+        
+        // Reset status
+        simulationStatus = 'ready';
+        document.getElementById('simulation-status-text').textContent = 'Ready';
+        document.getElementById('start-simulation').disabled = false;
+        document.getElementById('pause-simulation').disabled = true;
+        
+        // Reset position and progress
+        if (simulationRoutes.length > 0) {
+            currentPosition = simulationRoutes[0][0];
+            simulationMarker.setPosition(currentPosition);
+        }
+        
+        currentRouteIndex = 0;
+        currentRouteProgress = 0;
+        distanceTraveled = 0;
+        
+        // Update displays
+        document.getElementById('current-speed').textContent = '0 knots';
+        document.getElementById('distance-traveled').textContent = '0 nautical miles';
+        
+        // Redraw the path
+        drawSimulationPath();
+    }
+    
+    // Calculate approximate distance between two points (in nautical miles)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const kmDistance = R * c; // Distance in km
+        return kmDistance * 0.539957; // Convert to nautical miles
+    }
+    
+    // Animate the boat movement
+    function animateBoat() {
+        if (simulationStatus !== 'running') return;
+        
+        // Calculate next position
+        let reachedEndOfRoute = false;
+        
+        if (currentRouteIndex < simulationRoutes.length) {
+            const currentRoute = simulationRoutes[currentRouteIndex];
+            // Move along the route
+            currentRouteProgress += 0.005; // Speed factor
+            
+            if (currentRouteProgress >= 1) {
+                // Move to next route
+                currentRouteIndex++;
+                currentRouteProgress = 0;
+                
+                if (currentRouteIndex >= simulationRoutes.length) {
+                    // Reached the end of all routes
+                    reachedEndOfRoute = true;
+                }
+            }
+            
+            if (!reachedEndOfRoute) {
+                const route = simulationRoutes[currentRouteIndex];
+                const progressIndex = Math.min(
+                    Math.floor(currentRouteProgress * (route.length - 1)),
+                    route.length - 2
+                );
+                const fromPoint = route[progressIndex];
+                const toPoint = route[progressIndex + 1];
+                const subProgress = currentRouteProgress * (route.length - 1) - progressIndex;
+                
+                // Interpolate position
+                const newLat = fromPoint.lat + (toPoint.lat - fromPoint.lat) * subProgress;
+                const newLng = fromPoint.lng + (toPoint.lng - fromPoint.lng) * subProgress;
+                
+                // Calculate distance traveled
+                const segmentDistance = calculateDistance(currentPosition.lat, currentPosition.lng, newLat, newLng);
+                distanceTraveled += segmentDistance;
+                
+                // Update current position
+                currentPosition = { lat: newLat, lng: newLng };
+                
+                // Update marker position
+                simulationMarker.setPosition(currentPosition);
+                
+                // Calculate bearing for marker rotation
+                const heading = Math.atan2(
+                    toPoint.lng - fromPoint.lng,
+                    toPoint.lat - fromPoint.lat
+                ) * (180 / Math.PI);
+                
+                // Update marker icon with rotation
+                const icon = simulationMarker.getIcon();
+                icon.rotation = heading;
+                simulationMarker.setIcon(icon);
+                
+                // Update the map center to follow the boat
+                simulationMap.setCenter(currentPosition);
+                
+                // Update speed display (random with average of 18-25 knots)
+                const baseSpeed = 18 + Math.random() * 7;
+                document.getElementById('current-speed').textContent = `${baseSpeed.toFixed(1)} knots`;
+                
+                // Update distance display
+                document.getElementById('distance-traveled').textContent = 
+                    `${distanceTraveled.toFixed(1)} nautical miles`;
+                
+                // Redraw path
+                drawSimulationPath();
+            } else {
+                // Reached destination
+                pauseSimulation();
+                document.getElementById('simulation-status-text').textContent = 'Completed';
+                document.getElementById('current-speed').textContent = '0 knots';
+            }
+        }
+        
+        // Continue animation
+        if (!reachedEndOfRoute) {
+            simulationAnimationId = requestAnimationFrame(animateBoat);
+        }
+    }
+    
+    // Initialize event listeners once DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to buttons if initial data is present
+        addEventListenersToButtons();
+    });
+</script>
+
+<script>
+    // Add this to the existing document ready function or create a new one
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Boat Modal
+        const addBoatModal = document.getElementById('addBoatModal');
+        const addBoatBtn = document.getElementById('add-boat-btn');
+        const closeModalButtons = document.querySelectorAll('.close-modal, .modal-cancel');
+        
+        // Open the modal when Add New Boat button is clicked
+        if (addBoatBtn) {
+            addBoatBtn.addEventListener('click', function() {
+                addBoatModal.style.display = 'block';
+            });
+        }
+        
+        // Close the modal when the close button or cancel button is clicked
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+        
+        // Close the modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+        
+        // Find location on map button - Simple random coordinates
+        const getLocationBtn = document.getElementById('get-location-btn');
+        if (getLocationBtn) {
+            getLocationBtn.addEventListener('click', function() {
+                // Ocean coordinates (avoiding land masses mostly)
+                const oceanLocations = [
+                    { lat: 35.6762, lng: 139.6503 }, // Near Tokyo
+                    { lat: 1.2655, lng: 103.8242 },  // Near Singapore
+                    { lat: 25.2697, lng: 55.3094 },  // Near Dubai
+                    { lat: 33.7395, lng: -118.2623 }, // Near Los Angeles
+                    { lat: -33.8688, lng: 151.2093 }, // Near Sydney
+                    { lat: 40.7128, lng: -74.0060 },  // Near New York
+                    { lat: 51.9225, lng: 4.4791 },    // Near Rotterdam
+                    { lat: -33.9180, lng: 18.4233 }   // Near Cape Town
+                ];
+                
+                // Select a random location
+                const randomIndex = Math.floor(Math.random() * oceanLocations.length);
+                const location = oceanLocations[randomIndex];
+                
+                // Set the coordinates in the form
+                document.getElementById('latitude').value = location.lat;
+                document.getElementById('longitude').value = location.lng;
+                
+                // Show feedback
+                alert('Random ocean coordinates have been set near a major port.');
+            });
+        }
+        
+        // Form validation and submission
+        const addBoatForm = document.getElementById('add-boat-form');
+        if (addBoatForm) {
+            addBoatForm.addEventListener('submit', function(e) {
+                // Do not prevent default - let the form submit normally
+                
+                // Basic validation to check all required fields are filled
+                const id = document.getElementById('ship_id').value.trim();
+                const name = document.getElementById('ship_name').value.trim();
+                const pin = document.getElementById('ship_pin').value.trim();
+                const boatType = document.getElementById('ship_type').value;
+                const latitude = document.getElementById('latitude').value.trim();
+                const longitude = document.getElementById('longitude').value.trim();
+                const status = document.getElementById('ship_status').value;
+                const portName = document.getElementById('source_location').value.trim();
+                
+                if (!id || !name || !pin || !boatType || !latitude || !longitude || !status || !portName) {
+                    alert('Please fill in all required fields marked with *');
+                    e.preventDefault(); // Stop form submission
+                    return false;
+                }
+                
+                // PIN must be 4 digits
+                if (!/^\d{4}$/.test(pin)) {
+                    alert('PIN must be exactly 4 digits');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Validate latitude and longitude
+                const lat = parseFloat(latitude);
+                const lng = parseFloat(longitude);
+                
+                if (isNaN(lat) || lat < -90 || lat > 90) {
+                    alert('Latitude must be between -90 and 90');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (isNaN(lng) || lng < -180 || lng > 180) {
+                    alert('Longitude must be between -180 and 180');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // If we got this far, form is valid
+                return true;
+            });
+        }
+    });
+</script>
+
+<%- include('partials/footer') %> 

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain Login - AB Shipping International</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-header h1 {
+            color: #1a4b84;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        .login-icon {
+            font-size: 48px;
+            color: #1a4b84;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #334155;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #1a4b84;
+            box-shadow: 0 0 0 3px rgba(26, 75, 132, 0.1);
+        }
+        
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #1a4b84;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f3a65;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border-left: 5px solid #ef4444;
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        .login-footer a {
+            color: #1a4b84;
+            text-decoration: none;
+        }
+        
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-ship login-icon"></i>
+                <h1>Captain Portal</h1>
+                <p>Enter your ship ID and PIN to access your vessel dashboard</p>
+            </div>
+            
+            <% if (error) { %>
+                <div class="alert">
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <form action="/captain/login" method="POST">
+                <div class="form-group">
+                    <label for="shipId">Ship ID</label>
+                    <input type="text" id="shipId" name="shipId" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pin">PIN (4 digits)</label>
+                    <input type="password" id="pin" name="pin" class="form-control" required maxlength="4" pattern="[0-9]{4}">
+                </div>
+                
+                <button type="submit" class="btn-primary">Log In</button>
+            </form>
+            
+            <div class="login-footer">
+                <p>
+                    Not a captain? <a href="/login">Login as company</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,556 @@
+<%- include('header', { adminAuthenticated: true }) %>
+
+<section class="admin-dashboard">
+    <div class="admin-dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage SRO 312D companies and access</p>
+    </div>
+    
+    <% if(success && success.length > 0) { %>
+        <div class="alert alert-success">
+            <%- success %>
+        </div>
+    <% } %>
+    
+    <% if(error && error.length > 0) { %>
+        <div class="alert alert-error">
+            <%- error %>
+        </div>
+    <% } %>
+    
+    <div class="admin-dashboard-actions">
+        <a href="/admin/add-company" class="admin-action-btn">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add New Company</span>
+        </a>
+    </div>
+    
+    <div class="admin-companies-section">
+        <h2><i class="fas fa-building"></i> Registered Companies</h2>
+        
+        <% if(companies && companies.length > 0) { %>
+            <div class="admin-companies-table-container">
+                <table class="admin-companies-table">
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Owner</th>
+                            <th>Company ID</th>
+                            <th>Email</th>
+                            <th>Date Added</th>
+                            <th>Last Login</th>
+                            <th>Status</th>
+                            <th>Boat Data</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% companies.forEach(company => { %>
+                            <tr>
+                                <td><%= company.companyName %></td>
+                                <td><%= company.ownerName %></td>
+                                <td><code><%= company.companyId %></code></td>
+                                <td><a href="mailto:<%= company.email %>"><%= company.email %></a></td>
+                                <td><%= new Date(company.dateAdded).toLocaleString() %></td>
+                                <td><%= company.lastLogin ? new Date(company.lastLogin).toLocaleString() : 'Never' %></td>
+                                <td><span class="status-badge <%= company.active ? 'status-active' : 'status-inactive' %>">
+                                    <%= company.active ? 'Active' : 'Inactive' %>
+                                </span></td>
+                                <td>
+                                    <% if(company.Boat_Coordinates && company.Boat_Coordinates.length > 0) { %>
+                                        <span class="status-badge status-active">
+                                            <%= company.Boat_Coordinates.length %> Boats
+                                        </span>
+                                    <% } else { %>
+                                        <span class="status-badge status-inactive">No Data</span>
+                                    <% } %>
+                                </td>
+                                <td class="actions-cell">
+                                    <a href="/admin/send-email/<%= company.companyId %>" class="action-link" title="Send Welcome Email">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <a href="/admin/seed-boat-data/<%= company.companyId %>" class="action-link action-seed" title="Add Sample Boat Data">
+                                        <i class="fas fa-ship"></i>
+                                    </a>
+                                    <a href="/admin/clear-boat-data/<%= company.companyId %>" class="action-link action-clear" title="Clear Boat Data" 
+                                       onclick="return confirm('Are you sure you want to clear all boat data for <%= company.companyName %>?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="no-companies-message">
+                <i class="fas fa-info-circle"></i>
+                <p>No companies registered yet. Click "Add New Company" to get started.</p>
+            </div>
+        <% } %>
+    </div>
+    
+    <div class="admin-dashboard-card map-overview">
+        <div class="card-header">
+            <h3><i class="fas fa-globe-americas"></i> Global Operations Map</h3>
+            <div class="map-controls">
+                <button id="satellite-view" class="map-type-btn">Satellite</button>
+                <button id="terrain-view" class="map-type-btn active">Terrain</button>
+                <button id="roadmap-view" class="map-type-btn">Roadmap</button>
+                <button id="hybrid-view" class="map-type-btn">Hybrid</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="admin-map-container" class="map-container">
+                <div id="admin-map" style="width: 100%; height: 60vh; min-height: 500px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></div>
+                <div id="map-loading" class="map-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading map...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .actions-cell {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-link {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f1f5f9;
+        color: #1a4b84;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .action-link:hover {
+        background-color: #1a4b84;
+        color: white;
+    }
+    
+    .action-seed {
+        color: #0ea5e9;
+    }
+    
+    .action-seed:hover {
+        background-color: #0ea5e9;
+        color: white;
+    }
+    
+    .action-clear {
+        color: #ef4444;
+    }
+    
+    .action-clear:hover {
+        background-color: #ef4444;
+        color: white;
+    }
+    
+    .alert-error {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border-left: 4px solid #b91c1c;
+    }
+    
+    .alert a {
+        text-decoration: underline;
+        font-weight: bold;
+    }
+    
+    .preview-link {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 12px;
+        background-color: #1a4b84;
+        color: white !important;
+        border-radius: 4px;
+        text-decoration: none !important;
+        font-weight: normal;
+        transition: background-color 0.2s;
+    }
+    
+    .preview-link:hover {
+        background-color: #0f3a65;
+    }
+    
+    /* Map Section Styles */
+    .admin-map-section {
+        margin-top: 40px;
+    }
+    
+    .admin-map-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    
+    .map-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .map-header p {
+        color: var(--gray-color);
+    }
+    
+    .map-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .map-type-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background-color: #f1f5f9;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .map-type-btn:hover {
+        background-color: #e2e8f0;
+    }
+    
+    .map-type-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .map-info {
+        margin-top: 15px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+    
+    .map-container {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- Include Maps Helper -->
+<script src="/js/maps-helper.js"></script>
+
+<!-- Google Maps Script -->
+<script>
+    let adminMap;
+    
+    function initAdminMap() {
+        // Hide loading spinner when map is initialized
+        const mapLoading = document.getElementById('admin-map-loading');
+        if (mapLoading) {
+            mapLoading.style.display = 'none';
+        }
+        
+        // Create a new map centered at a point with a good global view
+        adminMap = new google.maps.Map(document.getElementById("admin-map"), {
+            center: { lat: 20, lng: 0 }, // Center that shows most of the world
+            zoom: 2, // Zoom level to see the entire world
+            mapTypeId: google.maps.MapTypeId.TERRAIN, // Default view
+            mapTypeControl: true, // Enable built-in map type control
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_CENTER
+            },
+            scaleControl: true,
+            streetViewControl: false,
+            rotateControl: true,
+            fullscreenControl: true,
+            fullscreenControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_TOP
+            }
+        });
+        
+        // Define major ports around the world with regions/companies
+        const ports = [
+            { name: "Rotterdam", region: "Europe", position: { lat: 51.9225, lng: 4.47917 }, companies: 5 },
+            { name: "Shanghai", region: "Asia", position: { lat: 31.2304, lng: 121.4737 }, companies: 7 },
+            { name: "Singapore", region: "Asia", position: { lat: 1.2655, lng: 103.8242 }, companies: 4 },
+            { name: "Los Angeles", region: "North America", position: { lat: 33.7395, lng: -118.2623 }, companies: 6 },
+            { name: "New York", region: "North America", position: { lat: 40.7128, lng: -74.0060 }, companies: 8 },
+            { name: "Sydney", region: "Australia", position: { lat: -33.8688, lng: 151.2093 }, companies: 3 },
+            { name: "Dubai", region: "Middle East", position: { lat: 25.2697, lng: 55.3094 }, companies: 5 },
+            { name: "Mumbai", region: "India", position: { lat: 18.9657, lng: 72.8275 }, companies: 4 },
+            { name: "Cape Town", region: "Africa", position: { lat: -33.9180, lng: 18.4233 }, companies: 2 },
+            { name: "Santos", region: "South America", position: { lat: -23.9619, lng: -46.3042 }, companies: 3 },
+            { name: "Hamburg", region: "Europe", position: { lat: 53.5511, lng: 9.9937 }, companies: 4 },
+            { name: "Busan", region: "Asia", position: { lat: 35.1796, lng: 129.0756 }, companies: 3 },
+            { name: "Tokyo", region: "Asia", position: { lat: 35.6762, lng: 139.6503 }, companies: 6 },
+            { name: "Algeciras", region: "Europe", position: { lat: 36.1315, lng: -5.4539 }, companies: 2 },
+            { name: "Vancouver", region: "North America", position: { lat: 49.2827, lng: -123.1207 }, companies: 3 }
+        ];
+        
+        // Add markers for each port with custom styling based on number of companies
+        ports.forEach(port => {
+            // Scale marker size based on number of companies
+            const scale = 5 + (port.companies / 2);
+            
+            const marker = new google.maps.Marker({
+                position: port.position,
+                map: adminMap,
+                title: port.name,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: scale,
+                    fillColor: getRegionColor(port.region),
+                    fillOpacity: 0.8,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
+                }
+            });
+            
+            // Add info window for each port with company information
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="font-family: 'Poppins', sans-serif; padding: 10px;">
+                        <h3 style="color: #1a4b84; margin-bottom: 5px;">${port.name} Port</h3>
+                        <p style="margin: 5px 0;"><strong>Region:</strong> ${port.region}</p>
+                        <p style="margin: 5px 0;"><strong>Registered Companies:</strong> ${port.companies}</p>
+                        <p style="margin: 5px 0;"><strong>Active Routes:</strong> ${Math.round(port.companies * 1.5)}</p>
+                    </div>
+                `
+            });
+            
+            marker.addListener("click", () => {
+                infoWindow.open(adminMap, marker);
+            });
+        });
+        
+        // Generate shipping routes between ports
+        const routes = [
+            { from: "Rotterdam", to: "New York", volume: "High", type: "Container" },
+            { from: "Shanghai", to: "Los Angeles", volume: "Very High", type: "Mixed" },
+            { from: "Singapore", to: "Dubai", volume: "Medium", type: "Oil" },
+            { from: "Mumbai", to: "Singapore", volume: "Medium", type: "General" },
+            { from: "Cape Town", to: "Rotterdam", volume: "Low", type: "Mixed" },
+            { from: "Sydney", to: "Shanghai", volume: "Medium", type: "Container" },
+            { from: "Hamburg", to: "New York", volume: "High", type: "Cruise" },
+            { from: "Tokyo", to: "Los Angeles", volume: "High", type: "Container" },
+            { from: "Santos", to: "Algeciras", volume: "Medium", type: "General" },
+            { from: "Busan", to: "Vancouver", volume: "Medium", type: "Container" },
+            { from: "Dubai", to: "Mumbai", volume: "High", type: "Oil" },
+            { from: "Singapore", to: "Sydney", volume: "Medium", type: "Mixed" }
+        ];
+        
+        // Function to find port position by name
+        const getPortPosition = (name) => {
+            const port = ports.find(p => p.name === name);
+            return port ? port.position : null;
+        };
+        
+        // Function to get color based on route type
+        const getRouteColor = (type) => {
+            const colors = {
+                "Container": "#0097b2",
+                "Oil": "#e67e22",
+                "General": "#3498db",
+                "Mixed": "#9b59b6",
+                "Cruise": "#2ecc71"
+            };
+            return colors[type] || "#0097b2";
+        };
+        
+        // Function to get stroke weight based on volume
+        const getRouteWeight = (volume) => {
+            const weights = {
+                "Low": 1.5,
+                "Medium": 2.5,
+                "High": 3.5,
+                "Very High": 4.5
+            };
+            return weights[volume] || 2;
+        };
+        
+        // Draw polylines for each route with styling based on type and volume
+        routes.forEach(route => {
+            const fromPosition = getPortPosition(route.from);
+            const toPosition = getPortPosition(route.to);
+            
+            if (fromPosition && toPosition) {
+                // Create geodesic polyline
+                const routePath = new google.maps.Polyline({
+                    path: [fromPosition, toPosition],
+                    geodesic: true,
+                    strokeColor: getRouteColor(route.type),
+                    strokeOpacity: 0.7,
+                    strokeWeight: getRouteWeight(route.volume)
+                });
+                
+                routePath.setMap(adminMap);
+                
+                // Add interaction for routes
+                google.maps.event.addListener(routePath, 'mouseover', function() {
+                    this.setOptions({
+                        strokeOpacity: 1,
+                        strokeWeight: getRouteWeight(route.volume) + 1
+                    });
+                    
+                    // Show route info tooltip
+                    const midPoint = google.maps.geometry.spherical.interpolate(
+                        new google.maps.LatLng(fromPosition.lat, fromPosition.lng),
+                        new google.maps.LatLng(toPosition.lat, toPosition.lng),
+                        0.5
+                    );
+                    
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="font-family: 'Poppins', sans-serif; padding: 5px;">
+                                <p style="margin: 2px 0;"><strong>Route:</strong> ${route.from} to ${route.to}</p>
+                                <p style="margin: 2px 0;"><strong>Type:</strong> ${route.type}</p>
+                                <p style="margin: 2px 0;"><strong>Volume:</strong> ${route.volume}</p>
+                            </div>
+                        `,
+                        position: midPoint
+                    });
+                    
+                    infoWindow.open(adminMap);
+                    
+                    // Store the infoWindow on the route
+                    this.infoWindow = infoWindow;
+                });
+                
+                google.maps.event.addListener(routePath, 'mouseout', function() {
+                    this.setOptions({
+                        strokeOpacity: 0.7,
+                        strokeWeight: getRouteWeight(route.volume)
+                    });
+                    
+                    // Close the infoWindow
+                    if (this.infoWindow) {
+                        this.infoWindow.close();
+                    }
+                });
+            }
+        });
+        
+        // Add click event listeners to map type buttons
+        document.getElementById('satellite-view').addEventListener('click', function() {
+            changeMapType('satellite');
+        });
+        
+        document.getElementById('terrain-view').addEventListener('click', function() {
+            changeMapType('terrain');
+        });
+        
+        document.getElementById('roadmap-view').addEventListener('click', function() {
+            changeMapType('roadmap');
+        });
+        
+        document.getElementById('hybrid-view').addEventListener('click', function() {
+            changeMapType('hybrid');
+        });
+    }
+    
+    // Function to get color based on region
+    function getRegionColor(region) {
+        const colors = {
+            "Europe": "#3498db",
+            "Asia": "#e74c3c",
+            "North America": "#2ecc71",
+            "South America": "#f1c40f",
+            "Africa": "#9b59b6",
+            "Australia": "#1abc9c",
+            "Middle East": "#e67e22",
+            "India": "#fd79a8"
+        };
+        return colors[region] || "#95a5a6";
+    }
+    
+    // Function to change map type
+    function changeMapType(type) {
+        window.SRO_312D.maps.changeMapType(adminMap, type);
+        
+        // Update button active state
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.getElementById(`${type}-view`).classList.add('active');
+    }
+    
+    // Initialize the API
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use the new helper to load the API
+        window.initAdminMap = initAdminMap; // Make initAdminMap globally accessible
+        window.SRO_312D.maps.loadGoogleMapsAPI('initAdminMap');
+        
+        // Enable responsive resizing
+        const mapElement = document.getElementById('admin-map');
+        if (mapElement) {
+            window.SRO_312D.maps.resizeMap(mapElement);
+        }
+    });
+
+    // If loading takes too long, hide the spinner after 8 seconds
+    setTimeout(function() {
+        const mapLoading = document.getElementById('admin-map-loading');
+        if (mapLoading && mapLoading.style.display !== 'none') {
+            mapLoading.style.display = 'none';
+        }
+    }, 8000);
+</script>
+
+<%- include('footer') %> 

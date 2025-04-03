@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain Dashboard - <%= shipName %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .captain-navbar {
+            background-color: #1a4b84;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .captain-navbar h1 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .captain-navbar h1 i {
+            margin-right: 10px;
+        }
+        
+        .captain-navbar .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .captain-navbar .user-info .user-name {
+            margin-right: 15px;
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            padding: 6px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .card-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1a4b84;
+        }
+        
+        .card-header i {
+            margin-right: 10px;
+            color: #1a4b84;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #334155;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #1a4b84;
+            box-shadow: 0 0 0 3px rgba(26, 75, 132, 0.1);
+        }
+        
+        .btn-primary {
+            padding: 10px 15px;
+            background-color: #1a4b84;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f3a65;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #64748b;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        
+        .info-value {
+            color: #334155;
+        }
+        
+        .ship-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .ship-status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .ship-status-docked {
+            background-color: #e6f7ff;
+            color: #0069c0;
+        }
+        
+        .ship-status-maintenance {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+        
+        .ship-status-inactive {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .location-coordinates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .prediction-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+
+        .prediction-label {
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .prediction-value {
+            font-family: monospace;
+            color: #1a4b84;
+        }
+
+        .route-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+    <!-- Load Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+    <nav class="captain-navbar">
+        <h1><i class="fas fa-ship"></i> Captain Dashboard</h1>
+        <div class="user-info">
+            <span class="user-name">Ship: <%= shipName %> (<%= shipId %>)</span>
+            <a href="/captain/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Ship Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h2>Ship Information</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Ship Name:</div>
+                        <div class="info-value"><strong><%= shipData.name %></strong></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ship ID:</div>
+                        <div class="info-value"><%= shipData.id %></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Code:</div>
+                        <div class="info-value"><code><%= shipData.code %></code></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Type:</div>
+                        <div class="info-value"><%= shipData.boatType.charAt(0).toUpperCase() + shipData.boatType.slice(1) %></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status:</div>
+                        <div class="info-value">
+                            <span class="ship-status ship-status-<%= shipData.status %>">
+                                <%= shipData.status.charAt(0).toUpperCase() + shipData.status.slice(1) %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Company:</div>
+                        <div class="info-value"><%= companyName %></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Current Port:</div>
+                        <div class="info-value"><%= shipData.portName || 'At Sea' %></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Position:</div>
+                        <div class="info-value">
+                            <%= shipData.latitude.toFixed(4) %>, <%= shipData.longitude.toFixed(4) %>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Last Updated:</div>
+                        <div class="info-value">
+                            <%= new Date(shipData.lastUpdated).toLocaleString() %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Update Location Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h2>Update Location & Status</h2>
+                </div>
+                <div class="card-body">
+                    <form action="/captain/update-location" method="POST">
+                        <input type="hidden" name="shipId" value="<%= shipData.id %>">
+                        <div class="form-group location-coordinates">
+                            <div>
+                                <label for="latitude">Latitude*</label>
+                                <input type="number" id="latitude" name="latitude" class="form-control" required step="0.000001" min="-90" max="90" value="<%= shipData.latitude %>">
+                            </div>
+                            <div>
+                                <label for="longitude">Longitude*</label>
+                                <input type="number" id="longitude" name="longitude" class="form-control" required step="0.000001" min="-180" max="180" value="<%= shipData.longitude %>">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="destinationPort">Destination Port</label>
+                            <input type="text" id="destinationPort" name="destinationPort" class="form-control" value="<%= shipData.portName || '' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status">Current Status*</label>
+                            <select id="status" name="status" class="form-control" required>
+                                <option value="active" <%= shipData.status === 'active' ? 'selected' : '' %>>Active (at sea)</option>
+                                <option value="docked" <%= shipData.status === 'docked' ? 'selected' : '' %>>Docked (at port)</option>
+                                <option value="maintenance" <%= shipData.status === 'maintenance' ? 'selected' : '' %>>Maintenance</option>
+                                <option value="inactive" <%= shipData.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" id="get-current-location" class="btn-primary" style="margin-bottom: 15px;">
+                            <i class="fas fa-crosshairs"></i> Get Current Location
+                        </button>
+                        
+                        <button type="submit" class="btn-primary" style="width: 100%;">
+                            <i class="fas fa-save"></i> Update Ship Information
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Route Optimization Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <i class="fas fa-route"></i>
+                    <h2>Route Optimization</h2>
+                </div>
+                <div class="card-body">
+                    <form action="/captain/optimize-route" method="POST" id="optimize-route-form">
+                        <input type="hidden" name="shipId" value="<%= shipData.id %>">
+                        <div class="route-options">
+                            <div>
+                                <h3>Source Point</h3>
+                                <div class="form-group location-coordinates">
+                                    <div>
+                                        <label for="sourceLat">Latitude*</label>
+                                        <input type="number" id="sourceLat" name="sourceLat" class="form-control" required step="0.000001" min="-90" max="90" value="<%= sourceCoords ? sourceCoords.latitude : shipData.latitude %>">
+                                    </div>
+                                    <div>
+                                        <label for="sourceLng">Longitude*</label>
+                                        <input type="number" id="sourceLng" name="sourceLng" class="form-control" required step="0.000001" min="-180" max="180" value="<%= sourceCoords ? sourceCoords.longitude : shipData.longitude %>">
+                                    </div>
+                                </div>
+                                <button type="button" id="use-current-location" class="btn-primary" style="width: 100%; margin-top: 5px;">
+                                    <i class="fas fa-map-marker-alt"></i> Use Current Ship Location
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <h3>Destination Point</h3>
+                                <div class="form-group location-coordinates">
+                                    <div>
+                                        <label for="destLat">Latitude*</label>
+                                        <input type="number" id="destLat" name="destLat" class="form-control" required step="0.000001" min="-90" max="90" value="<%= destinationCoords ? destinationCoords.latitude : '' %>">
+                                    </div>
+                                    <div>
+                                        <label for="destLng">Longitude*</label>
+                                        <input type="number" id="destLng" name="destLng" class="form-control" required step="0.000001" min="-180" max="180" value="<%= destinationCoords ? destinationCoords.longitude : '' %>">
+                                    </div>
+                                </div>
+                                <button type="button" id="select-on-map" class="btn-primary" style="width: 100%; margin-top: 5px;">
+                                    <i class="fas fa-map"></i> Select on Map
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary" style="width: 100%;">
+                            <i class="fas fa-calculator"></i> Calculate Optimized Route
+                        </button>
+                    </form>
+                    
+                    <% if (typeof predictions !== 'undefined' && predictions) { %>
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i>
+                            <h2>Ocean Condition Predictions</h2>
+                        </div>
+                        <div class="prediction-container">
+                            <% Object.entries(predictions).forEach(([key, value]) => { %>
+                                <div class="prediction-item">
+                                    <span class="prediction-label"><%= key %>:</span>
+                                    <span class="prediction-value"><%= typeof value === 'number' ? value.toFixed(2) : value %></span>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Map View Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <i class="fas fa-map"></i>
+                    <h2>Navigation Map</h2>
+                </div>
+                <div class="card-body">
+                    <div id="map-container" class="map-container">
+                        <div id="map" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables for tracking state
+        window.selectingDestination = false;
+        window.map = null;
+        window.shipMarker = null;
+        window.sourceMarker = null;
+        window.destMarker = null;
+        
+        // Get Current Location Button
+        document.getElementById('get-current-location').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        document.getElementById('latitude').value = position.coords.latitude;
+                        document.getElementById('longitude').value = position.coords.longitude;
+                        alert('Current location has been set!');
+                        
+                        // If the map is initialized, update the marker
+                        if (window.shipMarker && window.map) {
+                            window.shipMarker.setLatLng([position.coords.latitude, position.coords.longitude]);
+                            window.map.setView([position.coords.latitude, position.coords.longitude], 10);
+                        }
+                    },
+                    // Error callback
+                    function(error) {
+                        console.error('Error getting location:', error);
+                        alert('Could not get your current location. Please enter coordinates manually.');
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser. Please enter coordinates manually.');
+            }
+        });
+        
+        // Use Current Ship Location Button
+        document.getElementById('use-current-location').addEventListener('click', function() {
+            const shipLat = parseFloat("<%= shipData.latitude %>");
+            const shipLng = parseFloat("<%= shipData.longitude %>");
+            
+            document.getElementById('sourceLat').value = shipLat;
+            document.getElementById('sourceLng').value = shipLng;
+            
+            // Update source marker on the map
+            if (window.sourceMarker && window.map) {
+                window.sourceMarker.setLatLng([shipLat, shipLng]);
+                window.map.setView([shipLat, shipLng], 10);
+            }
+        });
+        
+        // Select on Map Button
+        document.getElementById('select-on-map').addEventListener('click', function() {
+            alert('Click on the map to select a destination point');
+            window.selectingDestination = true;
+            
+            // Make sure map is visible by scrolling to it
+            document.getElementById('map-container').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Initialize map when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+        });
+        
+        // Leaflet map initialization
+        function initMap() {
+  try {
+    // Parse coordinate data from EJS variables
+    const shipLat = parseFloat("<%= shipData.latitude %>");
+    const shipLng = parseFloat("<%= shipData.longitude %>");
+    const shipName = "<%= shipData.name %>";
+    const shipStatus = "<%= shipData.status %>";
+
+    const sourceLat = parseFloat("<%= sourceCoords ? sourceCoords.latitude : shipData.latitude %>");
+    const sourceLng = parseFloat("<%= sourceCoords ? sourceCoords.longitude : shipData.longitude %>");
+
+    let destLat = shipLat, destLng = shipLng;
+    <% if (typeof destinationCoords !== 'undefined' && destinationCoords) { %>
+      destLat = parseFloat("<%= destinationCoords.latitude %>");
+      destLng = parseFloat("<%= destinationCoords.longitude %>");
+    <% } %>
+
+    // Initialize the Leaflet map
+    window.map = L.map('map').setView([shipLat, shipLng], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(window.map);
+
+    // Create ship marker & popup
+    const shipIcon = L.divIcon({
+      html: `<i class="fas fa-ship" style="color: ${shipStatus === "active" ? "#22c55e" : "#0284c7"}; font-size: 20px;"></i>`,
+      className: 'ship-marker',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+    window.shipMarker = L.marker([shipLat, shipLng], { icon: shipIcon, title: shipName }).addTo(window.map);
+    window.shipMarker.bindPopup(`
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 10px;">
+        <h3 style="margin: 0 0 8px; color: #1a4b84; font-size: 16px;">${shipName}</h3>
+        <div><strong>Status:</strong> ${shipStatus.charAt(0).toUpperCase() + shipStatus.slice(1)}</div>
+        <div><strong>Position:</strong> ${shipLat.toFixed(4)}, ${shipLng.toFixed(4)}</div>
+      </div>
+    `);
+
+    // Create source marker
+    const sourceIcon = L.divIcon({
+      html: '<div style="background:#22c55e; border:2px solid #fff; border-radius:50%; width:12px; height:12px;"></div>',
+      className: 'source-marker',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+    window.sourceMarker = L.marker([sourceLat, sourceLng], { icon: sourceIcon, title: "Source" }).addTo(window.map);
+
+    // Create destination marker
+    const destIcon = L.divIcon({
+      html: '<div style="background:#ef4444; border:2px solid #fff; border-radius:50%; width:12px; height:12px;"></div>',
+      className: 'dest-marker',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+    window.destMarker = L.marker([destLat, destLng], { icon: destIcon, title: "Destination" }).addTo(window.map);
+
+    // Parse CSV data and build grid nodes (plot grid points as tiny black dots)
+    const csvText = (<%- JSON.stringify(typeof csvData !== 'undefined' ? csvData : "") %>);
+    const gridNodes = [];
+    const gridIcon = L.divIcon({
+      html: '<div style="background:#000; border-radius:50%; width:2px; height:2px;"></div>',
+      className: 'grid-marker',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+    if (csvText.trim()) {
+      const rows = csvText.split('\n').map(row => row.trim().split(','));
+      const headers = rows[0];
+      const latIdx = headers.indexOf('latitude');
+      const lngIdx = headers.indexOf('longitude');
+      if (latIdx !== -1 && lngIdx !== -1) {
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row[latIdx] && row[lngIdx]) {
+            const lat = parseFloat(row[latIdx]);
+            const lng = parseFloat(row[lngIdx]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              // Plot the grid point
+              L.marker([lat, lng], { icon: gridIcon, title: "grid-" + i }).addTo(window.map);
+              // Add to grid nodes array
+              gridNodes.push({ id: 'node' + i, lat, lng });
+            }
+          }
+        }
+      } else {
+        console.error('CSV headers must include "latitude" and "longitude".');
+      }
+    }
+
+    // Include source and destination as grid nodes for path optimization
+    const sourceNode = { id: 'source', lat: sourceLat, lng: sourceLng };
+    const destNode = { id: 'dest', lat: destLat, lng: destLng };
+    gridNodes.push(sourceNode, destNode);
+
+    // Build a graph by connecting nodes within a set threshold (10 km here)
+    const graph = {};
+    const distanceThreshold = 10000; // 10,000 meters
+    function haversine(a, b) {
+      const toRad = x => x * Math.PI / 180;
+      const R = 6371000; // meters
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const lat1 = toRad(a.lat);
+      const lat2 = toRad(b.lat);
+      const aVal = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+      const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+      return R * c;
+    }
+    gridNodes.forEach(node => { graph[node.id] = []; });
+    for (let i = 0; i < gridNodes.length; i++) {
+      for (let j = i + 1; j < gridNodes.length; j++) {
+        const nodeA = gridNodes[i];
+        const nodeB = gridNodes[j];
+        const dist = haversine(nodeA, nodeB);
+        if (dist <= distanceThreshold) {
+          graph[nodeA.id].push({ node: nodeB, cost: dist });
+          graph[nodeB.id].push({ node: nodeA, cost: dist });
+        }
+      }
+    }
+
+    // A* algorithm to compute the optimal path through the grid
+    function aStar(start, goal, graph) {
+      const openSet = new Set([start.id]);
+      const cameFrom = {};
+      const gScore = {};
+      const fScore = {};
+      gridNodes.forEach(n => {
+        gScore[n.id] = Infinity;
+        fScore[n.id] = Infinity;
+      });
+      gScore[start.id] = 0;
+      fScore[start.id] = haversine(start, goal);
+
+      while (openSet.size > 0) {
+        let currentId = null, lowestF = Infinity;
+        openSet.forEach(id => {
+          if (fScore[id] < lowestF) {
+            lowestF = fScore[id];
+            currentId = id;
+          }
+        });
+        if (currentId === goal.id) {
+          const path = [];
+          let curr = currentId;
+          while (curr) {
+            const node = gridNodes.find(n => n.id === curr);
+            path.unshift([node.lat, node.lng]);
+            curr = cameFrom[curr];
+          }
+          return path;
+        }
+        openSet.delete(currentId);
+        (graph[currentId] || []).forEach(neighbor => {
+          const tentativeG = gScore[currentId] + neighbor.cost;
+          if (tentativeG < gScore[neighbor.node.id]) {
+            cameFrom[neighbor.node.id] = currentId;
+            gScore[neighbor.node.id] = tentativeG;
+            fScore[neighbor.node.id] = tentativeG + haversine(neighbor.node, goal);
+            openSet.add(neighbor.node.id);
+          }
+        });
+      }
+      return null;
+    }
+    const optimizedPath = aStar(sourceNode, destNode, graph);
+    if (optimizedPath && optimizedPath.length > 0) {
+      console.log("Optimized Path:", optimizedPath);
+      const optimizedPathLine = L.polyline(optimizedPath, {
+        color: '#0066cc',
+        weight: 7,
+        opacity: 1.0,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(window.map);
+      window.map.fitBounds(optimizedPathLine.getBounds());
+
+      let totalDistance = 0;
+      for (let i = 0; i < optimizedPath.length - 1; i++) {
+        const a = { lat: optimizedPath[i][0], lng: optimizedPath[i][1] };
+        const b = { lat: optimizedPath[i+1][0], lng: optimizedPath[i+1][1] };
+        totalDistance += haversine(a, b);
+      }
+      const distanceNM = (totalDistance * 0.000539957).toFixed(2);
+      L.popup()
+        .setLatLng(optimizedPath[Math.floor(optimizedPath.length / 2)])
+        .setContent(`<strong>Optimized Route</strong><br>Distance: ${distanceNM} NM`)
+        .openOn(window.map);
+    } else {
+      console.error("No optimized route found.");
+    }
+
+    // Map click listener for destination selection
+    window.map.on('click', function(e) {
+      if (window.selectingDestination) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        document.getElementById('destLat').value = lat.toFixed(6);
+        document.getElementById('destLng').value = lng.toFixed(6);
+        window.destMarker.setLatLng([lat, lng]);
+        window.selectingDestination = false;
+        alert("Destination point set at: " + lat.toFixed(4) + ", " + lng.toFixed(4));
+      }
+    });
+  } catch (error) {
+    console.error("Error in initMap:", error);
+    document.getElementById('map').innerHTML = '<div style="padding:20px; text-align:center;">Error loading map.</div>';
+  }
+}
+   
+
+
+    </script>
+</body>
+</html>

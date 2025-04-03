@@ -1,0 +1,362 @@
+/* 
+   SRO 312D - Admin Styles
+   Admin portal specific styling
+*/
+
+/* Admin General Styles */
+.admin-body {
+    background-color: #f5f7fa;
+}
+
+.admin-main {
+    min-height: calc(100vh - 180px);
+}
+
+.admin-header {
+    background-color: var(--dark-color);
+    color: #fff;
+}
+
+.admin-header .logo h1 {
+    color: #fff;
+}
+
+.admin-label {
+    font-size: 0.6rem;
+    background-color: var(--secondary-color);
+    padding: 3px 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-header nav ul li a {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.admin-header nav ul li a:hover {
+    color: #fff;
+}
+
+.admin-header nav ul li a i {
+    margin-right: 6px;
+}
+
+.admin-footer {
+    background-color: var(--dark-color);
+    padding: 15px 0;
+    color: #fff;
+}
+
+/* Admin Login Styles */
+.admin-login-section {
+    padding: 60px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 180px);
+}
+
+.admin-login-container {
+    max-width: 500px;
+    width: 100%;
+}
+
+.admin-login-card {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 30px;
+}
+
+.admin-login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.admin-login-header h2 {
+    font-size: 1.8rem;
+    color: var(--dark-color);
+    margin-bottom: 10px;
+}
+
+.admin-login-header p {
+    color: var(--gray-color);
+    font-size: 0.95rem;
+}
+
+.admin-login-form .form-group {
+    margin-bottom: 20px;
+}
+
+.admin-login-note {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--gray-color);
+    font-size: 0.85rem;
+    padding-top: 20px;
+    border-top: 1px solid #edf2f7;
+}
+
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    padding: 40px 20px;
+}
+
+.admin-dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.admin-dashboard-header h1 {
+    font-size: 2rem;
+    color: var(--dark-color);
+    margin-bottom: 10px;
+}
+
+.admin-dashboard-header p {
+    color: var(--gray-color);
+    font-size: 1rem;
+}
+
+.admin-dashboard-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+}
+
+.admin-action-btn {
+    display: flex;
+    align-items: center;
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.admin-action-btn:hover {
+    background-color: #1c5da0;
+    color: #fff;
+}
+
+.admin-action-btn i {
+    margin-right: 8px;
+}
+
+.admin-companies-section {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 30px;
+    margin-bottom: 40px;
+}
+
+.admin-companies-section h2 {
+    font-size: 1.3rem;
+    color: var(--dark-color);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+}
+
+.admin-companies-section h2 i {
+    margin-right: 10px;
+    color: var(--secondary-color);
+}
+
+.admin-companies-table-container {
+    overflow-x: auto;
+}
+
+.admin-companies-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.admin-companies-table th {
+    background-color: #f1f5f9;
+    color: var(--dark-color);
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 15px;
+}
+
+.admin-companies-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #edf2f7;
+    color: var(--text-color);
+}
+
+.admin-companies-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-companies-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.admin-companies-table code {
+    background-color: #f1f5f9;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #e6fffa;
+    color: #0694a2;
+}
+
+.status-inactive {
+    background-color: #feebc8;
+    color: #9c4221;
+}
+
+.admin-no-companies {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--gray-color);
+}
+
+/* Add Company Styles */
+.admin-add-company {
+    padding: 40px 20px;
+}
+
+.admin-form-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.admin-form-card {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 30px;
+}
+
+.admin-form .form-group {
+    margin-bottom: 25px;
+}
+
+.admin-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.admin-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.admin-form input:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 151, 178, 0.1);
+}
+
+.admin-form small {
+    display: block;
+    margin-top: 5px;
+    color: var(--gray-color);
+    font-size: 0.8rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+/* Alert Styles */
+.alert {
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.alert-success {
+    background-color: #e6fffa;
+    color: #0694a2;
+    border-left: 4px solid #0694a2;
+}
+
+/* Error Page Styles */
+.error-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 300px);
+    padding: 60px 20px;
+}
+
+.error-container {
+    max-width: 500px;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 4rem;
+    color: var(--danger-color);
+    margin-bottom: 20px;
+}
+
+.error-container h1 {
+    font-size: 2rem;
+    color: var(--dark-color);
+    margin-bottom: 15px;
+}
+
+.error-container p {
+    color: var(--gray-color);
+    margin-bottom: 30px;
+}
+
+.error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .admin-companies-table th,
+    .admin-companies-table td {
+        padding: 10px 12px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .admin-dashboard-actions {
+        justify-content: center;
+    }
+} 

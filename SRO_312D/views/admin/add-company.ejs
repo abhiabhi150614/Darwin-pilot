@@ -1,0 +1,113 @@
+<%- include('header', { adminAuthenticated: true }) %>
+
+<section class="admin-add-company">
+    <div class="admin-dashboard-header">
+        <h1>Add New Company.</h1>
+        <p>Register a new company to SRO 312D platform</p>
+    </div>
+    
+    <div class="admin-form-container">
+        <div class="admin-form-card">
+            <% if(error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <form action="/admin/add-company" method="POST" class="admin-form">
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" name="companyName" placeholder="Enter company name" value="<%= formData.companyName || '' %>" required>
+                    <small>The full name of the company</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ownerName">Owner Name</label>
+                    <input type="text" id="ownerName" name="ownerName" placeholder="Enter owner's name" value="<%= formData.ownerName || '' %>" required>
+                    <small>The name of the company's owner or primary contact</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="companyId">Company ID</label>
+                    <input type="text" id="companyId" name="companyId" placeholder="Enter unique company ID" value="<%= formData.companyId || '' %>" required>
+                    <small>This will be used for login (must be unique)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter company email" value="<%= formData.email || '' %>" required>
+                    <small>Welcome email will be sent to this address</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required>
+                    <small>Minimum 6 characters recommended for security</small>
+                </div>
+                
+                <div class="email-options-container">
+                    <div class="email-options-header">
+                        <h3>Email Notification</h3>
+                        <p><small>A welcome email will be automatically sent to the company's email address</small></p>
+                    </div>
+                    
+                    <div class="email-options">
+                        <div class="option">
+                            <p class="option-description">
+                                <i class="fas fa-envelope"></i> 
+                                Our system will send a welcome email with login credentials to the company owner. 
+                                You will be able to view the sent email from the dashboard.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Company</button>
+                    <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<style>
+    .email-options-container {
+        margin: 30px 0;
+        padding: 20px;
+        background-color: #f8fafc;
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .email-options-header {
+        margin-bottom: 15px;
+    }
+    
+    .email-options-header h3 {
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+    
+    .email-options {
+        margin-top: 15px;
+    }
+    
+    .option {
+        margin-bottom: 12px;
+    }
+    
+    .option-description {
+        padding: 10px;
+        background-color: #f1f5f9;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+    }
+    
+    .option-description i {
+        color: var(--primary-color);
+        margin-right: 6px;
+    }
+</style>
+
+<%- include('footer') %> 
